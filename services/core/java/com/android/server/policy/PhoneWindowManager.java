@@ -268,7 +268,7 @@ import lineageos.providers.LineageSettings;
 import org.lineageos.internal.buttons.LineageButtons;
 import org.lineageos.internal.util.ActionUtils;
 
-import com.android.server.SmartPowerOffService;
+// import com.android.server.SmartPowerOffService;
 import org.rising.server.ShakeGestureService;
 
 import java.io.File;
@@ -848,7 +848,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private ThreeFingersSwipeListener mThreeFingersListener;
     private boolean mThreeFingerListenerRegistered;
     
-    private SmartPowerOffService mSmartPowerOffService;
+  //  private SmartPowerOffService mSmartPowerOffService;
     private boolean mSmartPowerOffEnabled;
 
     private class PolicyHandler extends Handler {
@@ -3454,7 +3454,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     LineageSettings.System.CAMERA_LAUNCH, 0,
                     UserHandle.USER_CURRENT) == 1;
 
-            boolean smartPowerOffEnabled = Settings.System.getIntForUser(resolver,
+/*             boolean smartPowerOffEnabled = Settings.System.getIntForUser(resolver,
                     "smart_power_off_enabled", 0,
                     UserHandle.USER_CURRENT) != 0;
             if (mSmartPowerOffService != null && mSmartPowerOffEnabled != smartPowerOffEnabled) {
@@ -3464,7 +3464,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 } else {
                     mWindowManagerFuncs.unregisterPointerEventListener(mSmartPowerOffService, DEFAULT_DISPLAY);
                 }
-            }
+            } */
 
             // Configure wake gesture.
             boolean wakeGestureEnabledSetting = Settings.Secure.getIntForUser(resolver,
@@ -6996,8 +6996,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mPocketMode = PocketModeService.getInstance(mContext);
         mPocketMode.onStart();
         
-        mSmartPowerOffService = new SmartPowerOffService(mContext);
-        mSmartPowerOffService.start();
+        //mSmartPowerOffService = new SmartPowerOffService(mContext);
+        //mSmartPowerOffService.start();
     }
     
     public boolean isDeviceInPocket() {
