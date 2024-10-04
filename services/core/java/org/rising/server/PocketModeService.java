@@ -233,9 +233,9 @@ public class PocketModeService extends SystemService {
             if (mAccelerometerSensor != null) {
                 mSensorManager.registerListener(mPocketModeListener, mAccelerometerSensor, POCKET_MODE_SENSOR_DELAY, mHandler);
             }
-            if (mProximitySensor != null) {
+/*             if (mProximitySensor != null) {
                 mSensorManager.registerListener(mPocketModeListener, mProximitySensor, POCKET_MODE_SENSOR_DELAY, mHandler);
-            }
+            } */
             if (mLightSensor != null) {
                 mSensorManager.registerListener(mPocketModeListener, mLightSensor, POCKET_MODE_SENSOR_DELAY, mHandler);
             }
@@ -288,15 +288,13 @@ public class PocketModeService extends SystemService {
 
     public void detect(Float prox, Float light, float[] g, Integer inc) {
         if (mAlwaysOnPocketModeEnabled) return;
-        boolean isProxInPocket = mProximitySensor != null && prox != -1f && prox < PROXIMITY_THRESHOLD;
+       // boolean isProxInPocket = mProximitySensor != null && prox != -1f && prox < PROXIMITY_THRESHOLD;
         boolean isLightInPocket = mLightSensor != null && light != -1f && light < LIGHT_THRESHOLD;
         boolean isGravityInPocket = mAccelerometerSensor != null && g != null && g.length == 3 && g[1] < GRAVITY_THRESHOLD;
         boolean isInclinationInPocket= mAccelerometerSensor != null && inc != -1 && (inc > MIN_INCLINATION || inc < MAX_INCLINATION);
 
-        mIsInPocket = isProxInPocket;
-        if (!mIsInPocket) {
-            mIsInPocket = isLightInPocket && isGravityInPocket && isInclinationInPocket;
-        }
+        mIsInPocket = isLightInPocket && isGravityInPocket && isInclinationInPocket;
+
         if (!mIsInPocket) {
             mIsInPocket = isGravityInPocket && isInclinationInPocket;
         }
