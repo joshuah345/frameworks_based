@@ -18,6 +18,8 @@
 
 package com.android.internal.util.crdroid;
 
+import com.android.internal.util.crdroid.KeyProviderManager;
+
 import android.app.ActivityTaskManager;
 import android.app.Application;
 import android.app.TaskStackListener;
@@ -43,6 +45,7 @@ public class PixelPropsUtils {
     private static final boolean DEBUG = SystemProperties.getBoolean(PROP_HOOKS + "DEBUG", false);
 
     private static final String SPOOF_PIXEL_GMS = "persist.sys.pixelprops.gms";
+    private static final String SPOOF_KEY_ATTESTATION = "persist.sys.pihooks.enable.gms_key_attestation_spoof";
     private static final String SPOOF_PIXEL_GPHOTOS = "persist.sys.pixelprops.gphotos";
     private static final String ENABLE_PROP_OPTIONS = "persist.sys.pixelprops.all";
     private static final String ENABLE_GAME_PROP_OPTIONS = "persist.sys.gameprops.enabled";
@@ -319,9 +322,13 @@ public class PixelPropsUtils {
     }
 
     public static void onEngineGetCertificateChain() {
-        // Check stack for SafetyNet or Play Integrity
+
+        if (SystemProperties.getBoolean(SPOOF_KEY_ATTESTATION, false) && KeyProviderManager.isKeyboxAvailable())
+            return;
+
+         // Check stack for SafetyNet or Play Integrity and if we want to spoof
         if (isCallerSafetyNet()) {
-            Log.i(TAG, "Blocked key attestation");
+            dlog("Blocked key attestation");
             throw new UnsupportedOperationException();
         }
     }
