@@ -4,6 +4,9 @@
  */
 package com.android.internal.util.crdroid;
 
+import android.util.Log;
+
+
 /**
  * Interface for keybox providers.
  *
@@ -13,6 +16,8 @@ package com.android.internal.util.crdroid;
  * @hide
  */
 public interface IKeyboxProvider {
+
+    String TAG = "IKeyboxProvider";
 
     /**
      * Checks if a valid keybox is available.

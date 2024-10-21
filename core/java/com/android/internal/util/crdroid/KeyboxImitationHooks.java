@@ -35,6 +35,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 
 /** 
  * @hide
@@ -59,7 +61,7 @@ public class KeyboxImitationHooks {
     }  
     
     private static final Boolean sEnableKeyAttestationSpoof = SystemProperties.getBoolean(
-            "persist.sys.pihooks.enable.gms_key_attestation_spoof", true);
+            "persist.sys.pihooks.enable.key_attestation_spoof", true);
 
     private static final ASN1ObjectIdentifier KEY_ATTESTATION_OID = new ASN1ObjectIdentifier(
             "1.3.6.1.4.1.11129.2.1.17");
@@ -186,27 +188,18 @@ public class KeyboxImitationHooks {
 
     private static void blockKeyAttestationIfSpoofingGMS(int reason) {
 
-        String blockReason = "";
+        String blockReason;
 
         if (isSpoofingGMS()) {
-            switch(reason) {
-                case 1:
-                    blockReason = "(Key attestation spoofing is disabled)";
-                    break;
-                case 2:
-                    blockReason = "(No keybox available)";
-                    break;
-                case 3: 
-                    blockReason = "(error in onGetKeyEntry)";
-                    break;
-                default:
-                blockReason = "";
-            }
+            blockReason = switch (reason) {
+                case 1 -> "(Key attestation spoofing is disabled)";
+                case 2 -> "(No keybox available)";
+                case 3 -> "(error in onGetKeyEntry)";
+                default -> "";
+            };
 
             Log.d(TAG, "GMS Spoofing is enabled -> Blocked key attestation " + blockReason);
             throw new UnsupportedOperationException(); 
-        } else {
-            return;
         }
     }
 

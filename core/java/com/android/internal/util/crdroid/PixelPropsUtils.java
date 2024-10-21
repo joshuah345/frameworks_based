@@ -36,6 +36,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PixelPropsUtils {
 
@@ -58,16 +60,20 @@ public class PixelPropsUtils {
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
             "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
             
-    private static final Map<String, String> DEFAULT_VALUES = Map.of(
-        "BRAND", "google",
-        "MANUFACTURER", "Google",
-        "DEVICE", "husky",
-        "FINGERPRINT", "google/husky_beta/husky:15/AP31.240617.015/12207491:user/release-keys",
-        "MODEL", "Pixel 8 Pro",
-        "PRODUCT", "husky_beta",
-        "DEVICE_INITIAL_SDK_INT", "21",
-        "SECURITY_PATCH", "2024-08-05",
-        "ID", "AP31.240617.015"
+    private static final Map<String, String> DEFAULT_VALUES = Map.ofEntries(
+		Map.entry("BRAND", "google"),
+		Map.entry("MANUFACTURER", "Google"),
+		Map.entry("DEVICE", "tokay"),
+		Map.entry("FINGERPRINT", "google/tokay_beta/tokay:15/AP41.240823.009/12329489:user/release-keys"),
+		Map.entry("MODEL", "Pixel 9"),
+		Map.entry("PRODUCT", "tokay_beta"),
+		Map.entry("DEVICE_INITIAL_SDK_INT", "25"),
+		Map.entry("SECURITY_PATCH", "2024-09-05"),
+		Map.entry("ID", "AP41.240823.009"),
+		Map.entry("TYPE", "user"),
+		Map.entry("TAGS", "release-keys"),
+		Map.entry("INCREMENTAL", "12329489"),
+		Map.entry("RELEASE", "15")
     );
 
     static {
@@ -235,6 +241,39 @@ public class PixelPropsUtils {
         }
     }
 
+    public static String getBuildID(String fingerprint) {
+        Pattern pattern = Pattern.compile("([A-Za-z0-9]+\\.\\d+\\.\\d+\\.\\w+)");
+        Matcher matcher = pattern.matcher(fingerprint);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
+    }
+
+    private static void setVersionFieldString(String key, String value) {
+        try {
+            Field field = Build.VERSION.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to spoof Build." + key, e);
+        }
+    }
+
+    private static void setVersionFieldInt(String key, int value) {
+        try {
+            dlog("Defining version field " + key + " to " + value);
+            Field field = Build.VERSION.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to spoof Build." + key, e);
+        }
+    }
+
     private static Field getBuildClassField(String key) throws NoSuchFieldException {
         try {
             Field field = Build.class.getDeclaredField(key);
@@ -311,7 +350,15 @@ public class PixelPropsUtils {
         for (Map.Entry<String, String> entry : DEFAULT_VALUES.entrySet()) {
             String propKey = PROP_HOOKS + entry.getKey();
             String value = SystemProperties.get(propKey);
-            setPropValue(entry.getKey(), value != null && !value.isEmpty() ? value : entry.getValue());
+            if (null 
+            == propKey) {
+                setPropValue(entry.getKey(), value != null && !value.isEmpty() ? value : entry.getValue());
+            } else switch (propKey) {
+                case "RELEASE", "INCREMENTAL", "SECURITY_PATCH" -> setVersionFieldString(propKey,  value != null && !value.isEmpty() ? value : entry.getValue());
+                case "DEVICE_INITIAL_SDK_INT" -> setVersionFieldInt("DEVICE_INITIAL_SDK_INT", value != null ? Integer.parseInt(value) : Integer.parseInt(entry.getValue()));
+                case "ID" -> setPropValue(entry.getKey(), value != null && !value.isEmpty() ? getBuildID(DEFAULT_VALUES.get("FINGERPRINT")) : entry.getValue());
+                default -> setPropValue(entry.getKey(), value != null && !value.isEmpty() ? value : entry.getValue());
+            }
         }
     }
 
@@ -328,7 +375,7 @@ public class PixelPropsUtils {
 
          // Check stack for SafetyNet or Play Integrity and if we want to spoof
         if (isCallerSafetyNet()) {
-            dlog("Blocked key attestation");
+            Log.i(TAG, "Blocked key attestation");
             throw new UnsupportedOperationException();
         }
     }
